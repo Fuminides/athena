@@ -1,0 +1,1 @@
+qsub -N $1 launch_bci_2a.sh $1
