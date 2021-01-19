@@ -5,7 +5,7 @@ Athena is a library that comprises many different bci frameworks that perform cl
 * Classifier training
 * Decission making.
 
-It contains different versions of the Enhanced Multimodal Fusion framework and the Traditional Framework in [1] alreay implemented using the blocks from this library.
+It contains different versions of the Enhanced Multimodal Fusion framework and the Traditional Framework in [1] already implemented using the blocks from this library.
 
 Besides the basic methods for constructing the different architectures, different plugins regarding different variations and ampliations of the basic functionality are also presented, mostly related to further developments in the Decission making phase. Developing additional plugins is easy as long as the same philosophy of work is followed.
 
