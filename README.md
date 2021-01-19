@@ -16,6 +16,8 @@ As of today, the best result for the frameworks here obtained in
 Just install this repo with the link:
 
 ``` pip install git+https://github.com/Fuminides/athena.git```
+
+
 Or you an install it locally with pip:
 
 ```pip install .```
