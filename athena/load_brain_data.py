@@ -36,15 +36,18 @@ wavelets = (delta, theta, alpha, beta)
 tasks = {'L/R':0, 'L/F':1, 'L/T':2, 'R/F':3, 'R/T':4, 'F/T':5, 'All': 0}
 ##############################
 
-def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False, derivate=2, transition_time=0):
+def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False,
+                   derivate=2, transition_time=0, dataset_path='BCI Competition IV dataset 2a/A0'):
     '''
     Load all good quality subjects from the experiment. (See load_subject() for more info)
 
-    :basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
-    :signal_filter: if true, will perform a LOWESS filter to the signal.
-    :normalize: normalize the subject by zscore.
-
-    :return: A tuple (X, y), where X corresponds to each subject data and y to its labels.
+    :param basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
+    :param signal_filter: if true, will perform a LOWESS filter to the signal.
+    :param normalize: normalize the subject by zscore.
+    :param derivate: integer value. If bigger than 0, the values are differentiatied 'derivate' times.
+    :param transition_time: integer. Jump 'transition_time' observations between samples.
+    :param dataset_path: path to the bci iv dataset. Check load_competition_subject() for more details.
+    :return: A tuple (X, y), where X corresponds to each subject data observations and y to its labels.
     '''
     global d2_a
 
@@ -52,7 +55,7 @@ def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False, deri
     first = True
 
     for ix, element in enumerate(d2_a):
-        sX = load_competition_subject(element)
+        sX = load_competition_subject(element, dataset_path=dataset_path)
         sX, y = join_labels_BCI(sX)
 
         if basal_adjust:
@@ -84,69 +87,24 @@ def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False, deri
 
     return final_res, y_res
 
-def load_all_bci2b(basal_adjust=True, signal_filter=False, normalize=False, derivate=1, transition_time=0):
-    '''
-    Load all good quality subjects from the experiment. (See load_subject() for more info)
-
-    :basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
-    :signal_filter: if true, will perform a LOWESS filter to the signal.
-    :normalize: normalize the subject by zscore.
-
-    :return: A tuple (X, y), where X corresponds to each subject data and y to its labels.
-    '''
-    global d2_a
-
-    y_res = np.empty([0], np.int)
-    first = True
-
-    for ix, element in enumerate(d2_a):
-        for test in range(1, 4):
-            sX = load_competition_subject(element, version='b', test=str(test))
-            sX, y = join_left_right_BCI(sX)
-
-            if basal_adjust:
-                sX = sX[:, 200:, :]
-
-            if normalize:
-                mean_x = np.mean(np.mean(sX, axis=2, keepdims=True), axis=1, keepdims=True)
-                std_x = np.std(np.std(sX, axis=2, keepdims=True), axis=1, keepdims=True)
-                sX = (sX - mean_x) / std_x
-
-            if signal_filter:
-                from scipy.signal import savgol_filter
-                sX = sX - savgol_filter(sX, 31, 2, axis=1)
-
-            for n_diff in range(derivate):
-                sX = np.diff(sX, n=1, axis=1, prepend=0)
-
-            if transition_time > 0:
-                sX = sX[:, [int(x) for x in range(sX.shape[1]) if int(x % transition_time) == 0], :]
-
-            if first:
-                final_res = np.empty([sX.shape[0], sX.shape[1], 0], np.float, )
-                final_res = np.append(final_res, sX, axis=2)
-                first = False
-            else:
-                final_res = np.append(final_res, sX, axis=2)
-
-            y_res = np.append(y_res, y)
-
-    return final_res, y_res
-
 def load_datasets_bci2a(basal_adjust=False, signal_filter=False, normalize=True, derivate=2,
-                        transition_time=0, tongue_feet=False, cache_mode=True):
+                        transition_time=0, tongue_feet=False, cache_mode=True, dataset_path='BCI Competition IV dataset 2a/A0'):
     '''
     Load all good quality subjects from the experiment. (See load_subject() for more info)
 
-    :basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
-    :signal_filter: if true, will perform a LOWESS filter to the signal.
-    :normalize: normalize the subject by zscore.
-
-    :return: A tuple (X, y), where X corresponds to each subject data and y to its labels.
+    :param basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
+    :param signal_filter: if true, will perform a LOWESS filter to the signal.
+    :param normalize: normalize the subject by zscore.
+    :param derivate: integer value. If bigger than 0, the values are differentiatied 'derivate' times.
+    :param transition_time: integer. Jump 'transition_time' observations between samples.
+    :param dataset_path: path to the bci iv dataset. Check load_competition_subject() for more details.
+    :param cache_mode: looks for already existing computed partitions of this data. If there are not, it creates them.
+    :param tongue_feet: if True loads the for classes. If False, only loads the right/left hand.
+    :return: 90 datasets a list of partitions of 50/50 train test. 10 per subject.
     '''
     global d2_a
-    cache_file = 'bci_iv_logits/bci_iv_datasets.pckl'
-    cache_file_tongue_feet = 'bci_iv_logits/bci_iv_datasets_four_classes.pckl'
+    cache_file = dataset_path + 'bci_iv_datasets.pckl'
+    cache_file_tongue_feet = dataset_path + 'bci_iv_datasets_four_classes.pckl'
     if tongue_feet:
             cache_file = cache_file_tongue_feet
 
@@ -161,7 +119,7 @@ def load_datasets_bci2a(basal_adjust=False, signal_filter=False, normalize=True,
             y_res = np.empty([0], np.int)
             first = True
             for test in range(1, 4):
-                sX = load_competition_subject(element, version='a', test=str(test), tongue_feet=tongue_feet)
+                sX = load_competition_subject(element, version='a', test=str(test), tongue_feet=tongue_feet, dataset_path=dataset_path)
                 sX, y = join_labels_BCI(sX, tongue_feet=tongue_feet)
                 if basal_adjust:
                     sX = sX[:, 250:1000, :]
@@ -199,27 +157,28 @@ def load_datasets_bci2a(basal_adjust=False, signal_filter=False, normalize=True,
 
     return datasets
 
-def load_competition_subject(name = '1', version='a', test='1', tongue_feet=False, dataset_path='BCI Competition IV dataset 2a/A0'):
+def load_competition_subject(name = '1', version='a', test='1', tongue_feet=False, dataset_path='BCI Competition IV dataset 2a/A0',
+                             data_field='stft_data'):
     if version == 'a':
         try:
-            a = scipy.io.loadmat(dataset_path + name + 'TClass1stft.mat')['stft_data'] #They must have the FFT already done!
-            b = scipy.io.loadmat(dataset_path + name + 'TClass2stft.mat')['stft_data']
+            a = scipy.io.loadmat(dataset_path + name + 'TClass1stft.mat')[data_field] #They must have the FFT already done!
+            b = scipy.io.loadmat(dataset_path + name + 'TClass2stft.mat')[data_field]
         except FileNotFoundError:
-            a = scipy.io.loadmat(dataset_path + name + 'TClass1_stft.mat')['stft_data']
-            b = scipy.io.loadmat(dataset_path + name + 'TClass2_stft.mat')['stft_data']
+            a = scipy.io.loadmat(dataset_path + name + 'TClass1_stft.mat')[data_field]
+            b = scipy.io.loadmat(dataset_path + name + 'TClass2_stft.mat')[data_field]
 
         if tongue_feet:
-            c = scipy.io.loadmat(dataset_path + name + 'TClass3stft.mat')['stft_data']
-            d = scipy.io.loadmat(dataset_path + name + 'TClass4stft.mat')['stft_data']
+            c = scipy.io.loadmat(dataset_path + name + 'TClass3stft.mat')[data_field]
+            d = scipy.io.loadmat(dataset_path + name + 'TClass4stft.mat')[data_field]
 
             return a, b, c, d
         else:
-            return a,b
+            return a, b
     else:
-        a = scipy.io.loadmat('BCI Competition IV dataset 2b/B0' + name + '0'+ test +'TClass1stft.mat')['stft_data']
-        b = scipy.io.loadmat('BCI Competition IV dataset 2b/B0' + name + '0'+ test +'TClass2stft.mat')['stft_data']
+        a = scipy.io.loadmat('BCI Competition IV dataset 2b/B0' + name + '0'+ test +'TClass1stft.mat')[data_field]
+        b = scipy.io.loadmat('BCI Competition IV dataset 2b/B0' + name + '0'+ test +'TClass2stft.mat')[data_field]
 
-        return a,b
+        return a, b
 
 
 def fourier_transform(X):
@@ -252,12 +211,14 @@ def extract_test(experimentation, n):
     left, right = experimentation
     return left[:,:,n], right[:,:,n]
 
-def calc_CSP(experiment, bands, agg_waves=None, n_filters=25):
+def calc_CSP(experiment, bands, agg_waves=False, n_filters=25):
     '''
     Calculate the CSP for the set of experimentations for a single subject.
 
     :param experiment: a tuple containing right hand and left hand experiments.
-    :return: the calculated csp for each subject.
+    :param bands: frequency bands that define the wave band to study.
+    :param agg_waves: perform the arithmetic mean of the frequency bands before the CSP computing.
+    :return: the calculated csp output for each subject, the labels and the csp model.
     '''
     from contextlib import contextmanager,redirect_stderr,redirect_stdout
     from os import devnull
@@ -275,7 +236,7 @@ def calc_CSP(experiment, bands, agg_waves=None, n_filters=25):
         else:
             complete, y = join_left_right_BCI(experiment)
 
-        if agg_waves is not None:
+        if agg_waves:
             complete = np.transpose(np.mean(complete[bands, :, :],axis=0, keepdims=True), (2, 0, 1))
         else:
             complete = np.transpose(complete[bands, :, :], (2, 0, 1))
@@ -288,11 +249,12 @@ def calc_CSP(experiment, bands, agg_waves=None, n_filters=25):
 
 def calc_std_CSP(experiment, y=None, n_filters=25):
     '''
-    Calculates CSP from a experiment data using the standard wavelets.
+    Calculates CSP from a experiment data using the standard wavelets:
+        theta, delta, alpha, beta, SMR and All 1-30Hz.
 
     :experiment: check the result of load_all()
     :y: labels. If not given, calc_CSP() will infer them (requires experiments correctly sorted).
-    :return: 5 csp matrix (FiltersxSamples), the labels and a tuple with the csp models.
+    :return: 6 csp matrix (FiltersxSamples), the labels and a tuple with the csp models.
     '''
     if y is None:
         x = experiment
