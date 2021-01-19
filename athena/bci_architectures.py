@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
-Functions to load architectures (frameworks) from the BCI experiment.
+Functions to load baic blocks and architectures (frameworks) for BCI experiments.
 
 Created on Thu Mar 28 15:26:53 2019
 
-@author: javi-
+@author: Javier FUmanal Idocin (Fuminides)
 """
 import numpy as np
 
@@ -16,7 +16,6 @@ from sklearn.svm import SVC
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.tree import DecisionTreeClassifier
 
 classifier_types = [SVC, LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis, KNeighborsClassifier, GaussianProcessClassifier]
 
@@ -30,6 +29,7 @@ classical_aggregations = ['mean', 'min', 'max', 'median']
 def _fast_montecarlo_optimization(function_alpha, x0=[0.5], minimizer_kwargs=None, niter=200, smart=True):
     '''
     Just randomly samples the function. More functionality might come in the future if necessary.
+    Called from weight_numerical_optimization.
     '''
     class dummy_plug:
         def _init(self, x=None):
@@ -61,52 +61,18 @@ def _fast_montecarlo_optimization(function_alpha, x0=[0.5], minimizer_kwargs=Non
 
     return resultado
 
-def _fast_montecarlo_optimization_md(function_alpha, x0=[0.5], minimizer_kwargs=None, niter=200):
+def weight_numerical_optimization(func, x0=0.5, bounds=[0, 1], niter=100, mode='montecarlo', verbose=False):
     '''
-    Just randomly samples the function. More functionality might come in the future if necessary.
-    Considering moving this function to the more fitting bci md plugin.
+    Optimize the func using numerical optimization techniques: trivial values, bashinhopping and
+    naive montecarlo.
+
+    :param func: function to optimize.
+    :param x0: initial subject(s), must be valid input to func.
+    :param bounds: constrains for each value in the subjects.
+    :param niter: number of iterations/sampling in the methods.
+    :param mode: algorithm to use: {trivial, montecarlo, basinhopping}. Trivial just looks for some values in [0,1] range.
+    :param verbose: if True, shows a report of the solution found on screen.
     '''
-    class dummy_plug:
-        def _init(self, x=None):
-            self.x = x
-
-    def gen_subject():
-        alpha = np.random.random()
-        beta = np.random.random()
-
-        Mp = np.random.randint(50)
-        Mn = np.random.randint(50)
-
-        return [alpha, beta, Mp, Mn]
-
-    iter_actual = 0
-
-    #epsilon = 0.05
-    eval_per_iter = 5
-    best_fitness = 1
-    resultado = dummy_plug()
-
-    while(iter_actual < niter):
-        if len(x0) == 2:
-            subjects = [[gen_subject(), gen_subject()] for x in range(eval_per_iter)]
-        else:
-            subjects = [gen_subject() for x in range(eval_per_iter)]
-
-        fitness = [function_alpha(x) for x in subjects]
-        ordered = np.sort(fitness)
-        arg_ordered = np.argsort(fitness)
-        iter_actual += 1
-
-        if ordered[1] < best_fitness:
-            best_fitness = ordered[1]
-            resultado.x = subjects[arg_ordered[1]]
-            resultado.fun = best_fitness
-            if best_fitness == 0.0:
-                return resultado
-
-    return resultado
-
-def _my_optimization(func, x0=0.5, bounds=[0, 1], niter=100, mode='montecarlo', verbose=False):
     from scipy.optimize import  basinhopping
     import time
 
@@ -141,8 +107,7 @@ def _my_optimization(func, x0=0.5, bounds=[0, 1], niter=100, mode='montecarlo', 
                 res.x = candidate
                 res.fun = acc
                 best = acc
-    elif mode == 'montecarlo_md':
-        res = _fast_montecarlo_optimization_md(func, x0=x0, niter=niter)
+
     elif mode == 'montecarlo':
         res = _fast_montecarlo_optimization(func, x0=x0, niter=niter)
     end = time.time()
@@ -154,29 +119,15 @@ def _my_optimization(func, x0=0.5, bounds=[0, 1], niter=100, mode='montecarlo', 
 # =============================================================================
 #   BASIC COMPONENTS
 # =============================================================================
-def _extract_logits(X, machines, num_classes):
+def decision_making_learn(X, y):
     '''
-    Extract logits from a series of boltzmann models.
+    Learns the best aggregation function for a set of input data and their labels.
+    Uses the accuracy as evaluation criteria.
 
-    :param X: (bands, time, samples)
+    :param X: intput training data of shape (classifiers, samples, clases)
+    :param y: labels array for each sample.
+    :return : an aggregation function.
     '''
-    bands, time, samples = X.shape
-    logits = np.zeros((len(machines), X.shape[2], num_classes))
-
-    for ix, machine in enumerate(machines):
-        waveband = lb.wavelets[ix]
-        X_bands = X[waveband, :, :]
-        X_reshaped = X_bands.reshape((len(waveband)*time, samples)).T
-        logits[ix, :, :] = machine.predict_proba(X_reshaped>0)
-
-    return logits
-
-
-def _decision_making_learn(X, y):
-    '''
-    X (classifiers, samples, clases)
-    '''
-    from Fancy_aggregations import binary_parser as bp
     def compute_accuracy(yhat, y):
         return np.mean(yhat == y)
     maximo = 0
@@ -194,9 +145,13 @@ def _decision_making_learn(X, y):
 
 
 
-def _classifier_std_block_train(csp_x, labels):
+def classifier_std_block_train(csp_x, labels):
     '''
+    Trains a list of list classifiers from the extracted features obtained from
+    transforming the original FFT/EEG waves. So, for each wave band we
 
+    :param csp_x: csp transformed data (wave bands, features, samples)
+    :param labels: list of labels for each sample (or numpy array).
     :return: a list of lists of models. Each list is a list containing a trained
     model of the same type for the each band.
     '''
@@ -218,9 +173,13 @@ def _classifier_std_block_train(csp_x, labels):
 
     return models
 
-def _trad_classifier_train(csp_x, labels, designed_classifier=None, classifier_types = (SVC, LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis, KNeighborsClassifier, GaussianProcessClassifier)):
+def trad_classifier_train(csp_x, labels, designed_classifier=None, classifier_types = (SVC, LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis, KNeighborsClassifier, GaussianProcessClassifier)):
     '''
+    Trains a list of list classifiers from the extracted features obtained from
+    transforming the original FFT/EEG waves. So, for each wave band we
 
+    :param csp_x: csp transformed data (wave bands, features, samples)
+    :param labels: list of labels for each sample (or numpy array).
     :return: a list of lists of models. Each list is a list containing a trained
     model of the same type for the each band.
     '''
@@ -257,7 +216,18 @@ def _trad_classifier_train(csp_x, labels, designed_classifier=None, classifier_t
 
     return models[model_best]
 
-def _fitted_classifiers_forward(X, models, clases):
+def fitted_classifiers_forward(X, models, clases):
+    '''
+    Takes the csp output and forwards a list of trained classifiers, returning
+    a list of arrays of shape (classifiers, samples, clases).
+    (For mulimodal decision, EMF framework)
+
+    :param X: csp output. Array of (wave bands, samples, clases)
+    :param classifiers: list of fitted classifiers. Must implement predict_proba() method.
+    :param clases: number of different target clases.
+    :return : an raay of shape (classifiers, samples, clases) thjat contains the logits
+    for these classifiers.
+    '''
     classifiers = []
     for model_set in models:
         logits_model = np.zeros((len(model_set), X[0].shape[0], clases))
@@ -269,8 +239,17 @@ def _fitted_classifiers_forward(X, models, clases):
 
     return classifiers
 
-def _fitted_trad_classifier_forward(X, classifiers, clases):
+def fitted_trad_classifier_forward(X, classifiers, clases):
     '''
+    Takes the csp output and forwards a list of trained classifiers, returning
+    an array of shape (classifiers, samples, clases)
+    (For traditional decision making, trad framework)
+
+    :param X: csp output. Array of (wave bands, samples, clases)
+    :param classifiers: list of fitted classifiers. Must implement predict_proba() method.
+    :param clases: number of different target clases.
+    :return : an raay of shape (classifiers, samples, clases) thjat contains the logits
+    for these classifiers.
     '''
     logits_model = np.zeros((len(classifiers), X[0].shape[0], clases))
 
@@ -279,23 +258,23 @@ def _fitted_trad_classifier_forward(X, classifiers, clases):
 
     return logits_model
 
-def _multimodal_fusion_learn(logits_list, y):
+def multimodal_fusion_learn(logits_list, y):
     '''
+    Learns the best pair of aggregation functions for a training data,
+    using the best accuracy as criteria.
+
+    :param logits: list of logits [(bands, samples, clases)] (x classifiers)
+    :param y: labels for each sample.
+    :return : (aggregation for phase 1, aggreation for phase 2)
     '''
-    from Fancy_aggregations import binary_parser as bp
-
-
-    agg_functions1 = [bp.parse(x) for x in ['choquet', 'sugeno', 'shamacher', 'cfminmin', 'cf12', 'cf', 'fhamacher']]
-    agg_functions2 = [bp.parse(x) for x in ['geomean', 'hmean', 'sinoverlap']]
-
     final_logits = np.zeros((len(logits_list), logits_list[0].shape[0], logits_list[0].shape[1], logits_list[0].shape[2]))
 
     for ix, values in enumerate(logits_list):
        final_logits[ix, :, :, :] = values
 
     mejor = 0
-    ag1 = agg_functions1[0] #Precautionary default values
-    ag2 = agg_functions2[0]
+    ag1 = agg_functions_names[0] #Precautionary default values
+    ag2 = agg_functions_names[0]
 
     for ix, ag1 in enumerate(agg_functions_names):
         for jx, ag2 in enumerate(agg_functions_names):
@@ -308,17 +287,42 @@ def _multimodal_fusion_learn(logits_list, y):
 
     return bag1, bag2
 
-def _multimodal_fusion(logits, ag1, ag2, num_classes):
-    res = np.zeros((len(logits), logits[0].shape[1], num_classes))
+def multimodal_fusion(logits, ag1, ag2, num_classes=None):
+    '''
+    Fuse a list of logits using ag1 and ag2 as aggregation functions.
+
+    :param logits: list of logits [(bands, samples, clases)] (x classifiers)
+    :param ag1: aggregation function.
+    :param ag2: aggregation function.
+    :param num_classes: different number of classes  (deprecated)
+    '''
+    res = np.zeros((len(logits), logits[0].shape[1],  logits[0].shape[-1]))
     for ix, freq_logits in enumerate(logits):
         res[ix, :, :] = ag1(freq_logits, axis=0, keepdims=False)
 
     return ag2(res, axis=0, keepdims=False)
 
-def _csp_forward(x, models):
+def csp_forward(x, models):
+    '''
+    Given a training data of waves, and a list of csp models.
+
+    :param X: train (bands, time, samples)
+    :param models: list of csp models of len == bands.One csp model for each band.
+    :return : (number of wave bands, features, samples)
+    '''
     return lb.apply_CSP(x, models)
 
-def _csp_train_layer(X, y, n_filters=25):
+def csp_train_layer(X, y, n_filters=25):
+    '''
+    Trains a csp for each wave band in the load_brain_data module.
+
+    :param X: train (bands, time, samples)
+    :param y: labels (samples,)
+    :param n_filters: max number of filters for each wave band. If the wave band
+    has less frequencies than the number of filters, it takes the number of freqs
+    as n_filters.
+    :return : a tuple of (list of csp models, list of csp outputs)
+    '''
     csp1, csp2, csp3, csp4, csp5, csp_senmot, y, csp_models = lb.calc_std_CSP(X, y, n_filters=n_filters)
 
     return csp_models, [csp1, csp2, csp3, csp4, csp5, csp_senmot]
@@ -331,11 +335,25 @@ class bci_achitecture:
     This class is an abstraction of the bci architecture paradigm.
     Calling any of the methods appropietly will result
     in training and storing the subsenquently models.
+
+    The way of generating a bci_architecture follows this procedure:
+        > bci_arch = bci_architecture() <- This generates an "empty" bci architecture.
+        > bci_arch.trad_architecture(X, y) <- This generates and trains all the components
+                                                in a trad framework to perform classification
+                                                in the X, y training set.
+    Then, to perform classification no new samples, we can use two methods:
+        > bci_arch.forward(X_test) <- Returns the predicted class
+
+        or:
+
+        > bci_arch.predict_proba(X_test) <- Returns the logits for each class.
+
+    NOTE: bci architectures here presented do not perform signal preprocessing,
+    the data is theoretically preprocessed in the load_brain_data module.
     '''
 
     def forward(self, *args):
             return np.argmax(self.predict_proba(*args), axis=1)
-
 
 
 # =============================================================================
@@ -343,12 +361,25 @@ class bci_achitecture:
 # =============================================================================
     def trad_architecture(self, X, y, verbose=False, agregacion=None):
         '''
+        The trad architecture takes as features a set of different wave bands,
+        in the original paper: the theta, delta, alpha, beta and All.
+
+        For each one of them, we train a CSP model and a classifier. Then, we
+        look for the best decission making function.
+
+        We can specify the classifier used and the aggregation function used in the
+        agregacion parameter. This might relax oversampling and save time, as
+        looking for the best function might be very time  consuming.
+
         :param X: train (bands, time, samples)
         :param y: labels (samples,)
+        :param verbose: print additional information (not supported as of today)
+        :param agregacion: a tuple containing (agregation function, classifier)
+                           objects. Can be none, in that case they will be learnt from the training set.
         '''
-        def _emf_predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
-            csp_x = _csp_forward(Xf, csp_models)
-            logits = _fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
+        def _trad_predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
+            csp_x = csp_forward(Xf, csp_models)
+            logits = fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
 
             return ag1(logits, axis=0, keepdims=False)
         try:
@@ -358,14 +389,14 @@ class bci_achitecture:
             clasificador = None
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = _csp_train_layer(X, y)
+        csp_models, csp_x = csp_train_layer(X, y)
 
-        classifier = _trad_classifier_train(csp_x, y, designed_classifier=clasificador)
+        classifier = trad_classifier_train(csp_x, y, designed_classifier=clasificador)
 
-        logits = _fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
+        logits = fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
 
         if agregacion is None:
-            ag1 = _decision_making_learn(logits, y)
+            ag1 = decision_making_learn(logits, y)
         else:
             try:
 
@@ -373,32 +404,39 @@ class bci_achitecture:
             except AttributeError:
                 ag1 = agregacion
 
-        self._components = [csp_models, classifier, ag1, self._num_classes]
-        self.predict_proba = lambda a: _emf_predict_proba(a, csp_models, classifier, ag1, self._num_classes)
+        self.predict_proba = lambda a: _trad_predict_proba(a, csp_models, classifier, ag1, self._num_classes)
 
 # =============================================================================
 #          EMF ACHITECTURE
 # =============================================================================
     def emf_architecture(self, X, y, verbose=False):
         '''
+        The Enhanced Multimodal Framework architecture takes as features a set of different wave bands,
+        in the original paper: the theta, delta, alpha, beta and All.
+
+        For each one of them, we train a CSP model and a set of classifiers: KNN, LDA, QDA, SVM, GP.
+        Then, we look for the best multimodal-decission making function.
+        (It works similarly as an ensemble of trad frameworks)
+
         :param X: train (bands, time, samples)
         :param y: labels (samples,)
+        :param verbose: print additional information (not supported as of today)
         '''
         def _emf_predict_proba(X, csp_models, classifiers, ag1, ag2, num_classes):
-            csp_x = _csp_forward(X, csp_models)
-            logits = _fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+            csp_x = csp_forward(X, csp_models)
+            logits = fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
-            return _multimodal_fusion(logits, ag1, ag2, num_classes)
+            return multimodal_fusion(logits, ag1, ag2, num_classes)
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = _csp_train_layer(X, y)
+        csp_models, csp_x = csp_train_layer(X, y)
 
-        classifiers = _classifier_std_block_train(csp_x, y)
+        classifiers = classifier_std_block_train(csp_x, y)
 
-        logits = _fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+        logits = fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
-        ag1, ag2 = _multimodal_fusion_learn(logits, y)
+        ag1, ag2 = multimodal_fusion_learn(logits, y)
 
         self.predict_proba = lambda a: _emf_predict_proba(a, csp_models, classifiers, ag1, ag2, self._num_classes)
 
@@ -407,56 +445,56 @@ class bci_achitecture:
 # =============================================================================
     def one_classifier_architecture(self, X, y, verbose=True, agregacion=0):
             '''
+            The 1-classifier architecture takes as features a set of different wave bands: the theta, delta, alpha, beta and All.
+            But will only use the All them (the rest are for compatibility reasons).
+
+            For each one of them, we train a CSP model and a classifier. We select
+            one classifier of the using the agregacion parameter.
+
+
+
             :param X: train (bands, time, samples)
             :param y: labels (samples,)
+            :param verbose: print additional information (not supported as of today)
+            :param agregacion: an integer that designates the classifier to be used. Look for classifier_std_block_train()
+                                doc to understand how they are numerated.
+
             '''
 
             def _emf_predict_proba(X, classifier, csp_models, classifiers):
-                csp_x = _csp_forward(X, csp_models)
-                logits = _fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+                csp_x = csp_forward(X, csp_models)
+                logits = fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
                 return logits[classifier][4, :, :]
 
             self._num_classes = len(np.unique(y))
 
-            csp_models, csp_x = _csp_train_layer(X, y)
+            csp_models, csp_x = csp_train_layer(X, y)
 
-            classifiers = _classifier_std_block_train(csp_x, y)
+            classifiers = classifier_std_block_train(csp_x, y)
 
             self.predict_proba = lambda a: _emf_predict_proba(a, agregacion, csp_models, classifiers)
 
-    def csp_classifier_architecture(self, X, y, verbose=True):
-            '''
-            :param X: train (bands, time, samples)
-            :param y: labels (samples,)
-            '''
-
-            def _emf_predict_proba(X, csp_models):
-                csp_x = _csp_forward(X, csp_models)
-
-                return csp_x[4]
-
-            self._num_classes = len(np.unique(y))
-
-            csp_models, csp_x = _csp_train_layer(X, y, n_filters=2)
-
-            self.predict_proba = lambda a: _emf_predict_proba(a, csp_models)
 
 if __name__ == '__main__':
+    #A working example.
     from sklearn.model_selection import train_test_split
     import random
     random.seed(4)
     np.random.seed(4)
 
-    datasets_2a = lb.load_datasets_bci2a(derivate=0, normalize=True, tongue_feet=True)
-    my_architecture = bci_achitecture()
+    #We load the data (remember to specify where it is)
+    datasets_2a = lb.load_datasets_bci2a(derivate=2, normalize=True, tongue_feet=True)
     X, y = datasets_2a[0]
     X_train, X_test, y_train, y_test = train_test_split(np.transpose(X, (2, 1, 0)), y, test_size=0.5)
     X_train = np.transpose(X_train, (2, 1, 0))
     X_test = np.transpose(X_test, (2, 1, 0))
 
-    #my_architecture.trad_penalty_architecture(X_train, y_train, costs=[penalties.cost_functions[0], penalties.cost_functions[1]])
-    my_architecture.mff_intervalar_owa_architecture(X_train, y_train)#, cost=penalties.cost_functions[0])
+    #We create the bci architecture object
+    my_architecture = bci_achitecture()
+    #We transform this architecture in a emf one.
+    my_architecture.emf_architecture(X_train, y_train)
 
-    print('Acierto de train: ' + str(np.mean(np.equal(my_architecture.forward(X_train), y_train))))
-    print('Acierto de test: ' + str(np.mean(np.equal(my_architecture.forward(X_test), y_test))))
+    #We show our results
+    print('Train accuracy: ' + str(np.mean(np.equal(my_architecture.forward(X_train), y_train))))
+    print('Test accuracy: ' + str(np.mean(np.equal(my_architecture.forward(X_test), y_test))))

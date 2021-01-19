@@ -13,7 +13,7 @@ import numpy as np
 from Fancy_aggregations import moderate_deviations, implications, intervals, intervaluate_OWA
 from Fancy_aggregations import binary_parser as bp
 from Fancy_aggregations import intervaluate_moderate_deviations as md
-from bci_architectures import _my_optimization, mff_aggregations
+from bci_architectures import weight_numerical_optimization, mff_aggregations
 
 import bci_architectures as bci_base
 
@@ -55,7 +55,7 @@ def md_params_learn(X, y):
 
     niter = 50
     function_alpha = lambda a: optimize_function(X, y, a)
-    res = _my_optimization(function_alpha, [1, 10], niter=niter, mode='basinhopping')# minimizer_kwargs=minimizer_kwargs)
+    res = weight_numerical_optimization(function_alpha, [1, 10], niter=niter, mode='basinhopping')# minimizer_kwargs=minimizer_kwargs)
 
     return res
 
@@ -90,7 +90,7 @@ def multimodal_md_fusion_learn(logits_list, y):
        final_logits[ix, :, :, :] = values
     function_alpha = lambda a: optimize_function(final_logits, y, a)
     x0 = np.array([1, 10] * (len(logits_list)+1))
-    res = _my_optimization(function_alpha, x0, bounds=[0, 100], niter=100, mode='basinhopping')
+    res = weight_numerical_optimization(function_alpha, x0, bounds=[0, 100], niter=100, mode='basinhopping')
 
     return res
 
@@ -136,7 +136,7 @@ def multimodal_semi_md_fusion_learn(logits_list, y, layer=1):
     for ag_name in mff_aggregations:
         function_alpha = lambda a: optimize_function(final_logits, y, bp.parse(ag_name), a)
         x0 = np.array([1, 10] * (len(logits_list)))
-        res = _my_optimization(function_alpha, x0, bounds=[0, 100], niter=100, mode='basinhopping')
+        res = weight_numerical_optimization(function_alpha, x0, bounds=[0, 100], niter=100, mode='basinhopping')
         candidato = function_alpha(res)
 
         if candidato > mejor:
@@ -159,7 +159,7 @@ def owa_params_learn(X, y, owa_operator=intervaluate_OWA.iowa1, niter=50):
         return 1 - _compute_accuracy(yhat, y)
 
     function_alpha = lambda a: optimize_function(X, y, a)
-    res = _my_optimization(function_alpha, [0.5, 0.1], niter=niter, mode='montecarlo')
+    res = weight_numerical_optimization(function_alpha, [0.5, 0.1], niter=niter, mode='montecarlo')
 
     return res
 
@@ -185,7 +185,7 @@ def multimodal_owa_fusion_learn(logits_list, y, owa_operator=intervaluate_OWA.io
 
     function_alpha = lambda a: optimize_function(final_logits, y, a)
     x0 = [0.5, 0.1, 0.5, 0.1]
-    res = _my_optimization(function_alpha, x0, niter=niter, mode='montecarlo')
+    res = weight_numerical_optimization(function_alpha, x0, niter=niter, mode='montecarlo')
 
     return res
 # =============================================================================
