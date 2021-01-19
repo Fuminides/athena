@@ -100,7 +100,7 @@ def multimodal_alpha_forward(X, cost, cost2, alpha):
     david_played_and_it_pleased_the_lord = [bp.parse(x) for x in athena.agg_functions_names]
     agg_phase_1 = lambda X0, alpha, keepdims=False, axis=0: pn.penalty_aggregation(X0, david_played_and_it_pleased_the_lord, axis=axis, keepdims=keepdims, cost=lambda real, yhat, axis: cost(real, yhat, axis, alpha=alpha))
     agg_phase_2 = lambda X0, alpha, keepdims=False, axis=0: pn.penalty_aggregation(X0, david_played_and_it_pleased_the_lord, axis=axis, keepdims=keepdims, cost=lambda real, yhat, axis: cost2(real, yhat, axis, alpha=alpha))
-    
+
     return mpa_aggregation(X, agg_phase_1, agg_phase_2, alpha, keepdims=False)
 
 
@@ -179,7 +179,7 @@ def gen_all_good_alpha_trad(cost, aggs=athena.classical_aggregations, opt=1, mul
 
                 return 1 - acum_acc / n_splits #Rememeber: we are minimizing
 
-            clf = athena._my_optimization(func_opt)
+            clf = athena.my_optimization(func_opt)
 
         clfs.append(clf)
 
@@ -189,7 +189,7 @@ def gen_all_good_alpha_trad(cost, aggs=athena.classical_aggregations, opt=1, mul
 # =============================================================================
 def eval_alpha(alpha_v, y_hat, y):
     '''
-    
+
 
     Returns
     -------
@@ -198,18 +198,18 @@ def eval_alpha(alpha_v, y_hat, y):
     '''
     alpha_score = np.mean(np.minimum(alpha_v, 1 - alpha_v))
     acc_score = np.mean(np.equal(y_hat, y))
-    
+
     return (alpha_score + acc_score) / 2
 
 def mpa_aggregation(logits, agg1, agg2, alpha, keepdims=False):
     n_2 = len(logits)
     n_1, samples, clases = logits[0].shape
-    
+
     res = np.zeros((n_2, samples, clases))
-    
+
     for ix, logit in enumerate(logits):
         res[ix, :, :] = agg1(logit, axis=0, keepdims=False, alpha=alpha[ix])
-    
+
     return agg2(res, axis=0, keepdims=keepdims, alpha=alpha[-1])
 
 def eval_conf(X, alpha, y, agg1, agg2):
@@ -249,14 +249,14 @@ def gen_all_good_alpha_mff(cost, cost2, aggs=athena.agg_functions_names, opt=1, 
     datasets = []
     agg_phase_1 = lambda X, alpha, keepdims=False, axis=0: pn.penalty_aggregation(X, aggs, axis=axis, keepdims=keepdims, cost=lambda real, yhat, axis: cost(real, yhat, axis, alpha=alpha))
     agg_phase_2 = lambda X, alpha, keepdims=False, axis=0: pn.penalty_aggregation(X, aggs, axis=axis, keepdims=keepdims, cost=lambda real, yhat, axis: cost2(real, yhat, axis, alpha=alpha))
-    
+
     for logits_train, y_train, logits_test, y_test in zip(all_logits_train, all_y_train, all_logits_test, all_y_test):
         optimize_lambda = lambda alpha: -eval_conf(logits_train, alpha, y_train, agg_phase_1, agg_phase_2) #Remember we are minimizng
         x0_alpha = np.array([0.5] * len(logits_train) + [0.5])
-        
+
         res_1 = least_squares(optimize_lambda, x0_alpha, bounds=[0.0001, 0.9999])
         datasets.append(res_1.x)
-    
+
 
     return datasets
 
@@ -426,7 +426,7 @@ def _alpha_learn(X, y, cost, mff=False):
         x0 = [0.5]
 
 
-    res = athena._my_optimization(function_alpha, x0=x0, niter=100, mode='montecarlo')
+    res = athena.my_optimization(function_alpha, x0=x0, niter=100, mode='montecarlo')
     alpha_value = res
 
     if hasattr(alpha_value, 'len'):
@@ -610,7 +610,7 @@ def carmen_main(mode, args=None):
 
     elif str(mode) == 'study_new_alpha_costs_binary_mff':
         bin_alpha_dual(opt=1, multi_class=False, mff=True, reload=True)
-        
+
     elif str(mode) == 'study_new_alpha_costs_full_class_mff':
         bin_alpha_dual(opt=1, multi_class=True, mff=True, reload=True)
 

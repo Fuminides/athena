@@ -6,6 +6,10 @@ BCI plugin for the interval-valued moderate deviations and OWA operators.
 Includes the basic functions to learn and apply the parameters and the
 two architectures in the corresponding paper.
 
+arXiv version:
+    Fumanal-Idocin, J., Takáč, Z., Sanz, J. F. J. A., Goyena, H., Lin, C. T., Wang, Y. K., & Bustince, H. (2020).
+    Interval-valued aggregation functions based on moderate deviations applied to Motor-Imagery-Based Brain Computer Interface.
+    arXiv preprint arXiv:2011.09831.
 @author: Javier Fumanal Idocin (Javier)
 """
 import numpy as np
@@ -283,8 +287,8 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
         :param y: labels (samples,)
         '''
         def _emf_predict_proba(Xf, csp_models, classifiers, ag1, num_classes, intervalar_func=None, md_func=None):
-            csp_x = bci_base._csp_forward(Xf, csp_models)
-            logits = bci_base._fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
+            csp_x = bci_base.csp_forward(Xf, csp_models)
+            logits = bci_base.fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
             if intervalar_func is None:
                 intervalar_logits = intervaluate_logits(logits)
             else:
@@ -302,11 +306,11 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = bci_base._csp_train_layer(X, y)
+        csp_models, csp_x = bci_base.csp_train_layer(X, y)
 
-        classifier = bci_base._trad_classifier_train(csp_x, y)
+        classifier = bci_base.trad_classifier_train(csp_x, y)
 
-        logits = bci_base._fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
+        logits = bci_base.fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
 
         if agregacion is None:
             intervalar_logits = intervaluate_logits(logits)
@@ -332,8 +336,8 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
         '''
 
         def _emf_predict_proba(X, csp_models, classifiers, alpha, num_classes, intervalar_func=None, md_func=None):
-            csp_x = bci_base._csp_forward(X, csp_models)
-            logits = bci_base._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+            csp_x = bci_base.csp_forward(X, csp_models)
+            logits = bci_base.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
             if intervalar_func is None:
                 intervalar_logits = intervaluate_logits(logits)
             else:
@@ -351,11 +355,11 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = bci_base._csp_train_layer(X, y)
+        csp_models, csp_x = bci_base.csp_train_layer(X, y)
 
-        classifiers = bci_base._classifier_std_block_train(csp_x, y)
+        classifiers = bci_base.classifier_std_block_train(csp_x, y)
 
-        logits = bci_base._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+        logits = bci_base.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
         if agregacion is None:
             intervalar_logits = intervaluate_logits(logits)
@@ -380,8 +384,8 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
         :param y: labels (samples,)
         '''
         def _emf_predict_proba(Xf, csp_models, classifiers, ag1, num_classes, intervaluate_func=None, owa_operator=None):
-            csp_x = bci_base._csp_forward(Xf, csp_models)
-            logits = bci_base._fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
+            csp_x = bci_base.csp_forward(Xf, csp_models)
+            logits = bci_base.fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
             if intervaluate_func is None:
                 intervalar_logits = intervaluate_logits(logits)
             else:
@@ -399,11 +403,11 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = bci_base._csp_train_layer(X, y)
+        csp_models, csp_x = bci_base.csp_train_layer(X, y)
 
-        classifier = bci_base._trad_classifier_train(csp_x, y)
+        classifier = bci_base.trad_classifier_train(csp_x, y)
 
-        logits = bci_base._fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
+        logits = bci_base.fitted_trad_classifier_forward(csp_x, classifier, self._num_classes)
 
 
         if agregacion is None:
@@ -434,8 +438,8 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
         '''
 
         def _emf_predict_proba(X, csp_models, classifiers, alpha, num_classes, intervaluate_func=None, owa_operator=None):
-            csp_x = bci_base._csp_forward(X, csp_models)
-            logits = bci_base._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+            csp_x = bci_base.csp_forward(X, csp_models)
+            logits = bci_base.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
             if intervaluate_func is None:
                 intervalar_logits = intervaluate_logits(logits)
             else:
@@ -453,11 +457,11 @@ class bci_achitecture_interval_md(bci_base.bci_achitecture):
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = bci_base._csp_train_layer(X, y)
+        csp_models, csp_x = bci_base.csp_train_layer(X, y)
 
-        classifiers = bci_base._classifier_std_block_train(csp_x, y)
+        classifiers = bci_base.classifier_std_block_train(csp_x, y)
 
-        logits = bci_base._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+        logits = bci_base.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
         if agregacion is None:
             intervalar_logits = intervaluate_logits(logits)

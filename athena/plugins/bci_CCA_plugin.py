@@ -8,7 +8,6 @@ import torch
 
 import numpy as np
 
-
 import bci_architectures as athena
 
 from Fancy_aggregations import tensor_CCA as cca
@@ -153,8 +152,8 @@ class bci_achitecture_cca(athena.bci_achitecture):
             :param y: labels (samples,)
             '''
             def _predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
-                csp_x = athena._csp_forward(Xf, csp_models)
-                logits = athena._fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
+                csp_x = athena.csp_forward(Xf, csp_models)
+                logits = athena.fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
 
                 agg_output_tensor = ag1(torch.from_numpy(logits))
 
@@ -162,14 +161,14 @@ class bci_achitecture_cca(athena.bci_achitecture):
 
             self._num_classes = len(np.unique(y))
 
-            csp_models, csp_x = athena._csp_train_layer(np.real(X), y)
+            csp_models, csp_x = athena.csp_train_layer(np.real(X), y)
 
             csp_og = csp_x
             y_og = y
 
-            classifier = athena._trad_classifier_train(csp_x, y, designed_classifier=agregacion[1])
+            classifier = athena.trad_classifier_train(csp_x, y, designed_classifier=agregacion[1])
 
-            logits = athena._fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
+            logits = athena.fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
             ag1 = unimodal_decision_learn(logits, y_og, agregacion[0][0], agregacion[0][1])
 
             self._components = [csp_models, classifier, ag1, self._num_classes]
@@ -181,8 +180,8 @@ class bci_achitecture_cca(athena.bci_achitecture):
         :param y: labels (samples,)
         '''
         def _emf_predict_proba(X, csp_models, classifiers, ag1, num_classes):
-            csp_x = athena._csp_forward(X, csp_models)
-            inputs = athena._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+            csp_x = athena.csp_forward(X, csp_models)
+            inputs = athena.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
             numpy_version_inputs = np.zeros((len(inputs), inputs[0].shape[0], inputs[0].shape[1], inputs[0].shape[2]))
             for ix in range(len(inputs)):
                 numpy_version_inputs[ix] = inputs[ix]
@@ -192,14 +191,14 @@ class bci_achitecture_cca(athena.bci_achitecture):
 
         self._num_classes = len(np.unique(y))
 
-        csp_models, csp_x = athena._csp_train_layer(np.real(X), y)
+        csp_models, csp_x = athena.csp_train_layer(np.real(X), y)
 
         csp_og = csp_x
         y_og = y
 
-        classifiers = athena._classifier_std_block_train(csp_x, y)
+        classifiers = athena.classifier_std_block_train(csp_x, y)
 
-        logits = athena._fitted_classifiers_forward(csp_og, classifiers, self._num_classes)
+        logits = athena.fitted_classifiers_forward(csp_og, classifiers, self._num_classes)
 
         ag1 = multimodal_decision_learn(logits, y_og, agregacion[0][0], agregacion[0][1], agregacion[0][2], agregacion[0][3])
 

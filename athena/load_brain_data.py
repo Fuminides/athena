@@ -39,7 +39,7 @@ tasks = {'L/R':0, 'L/F':1, 'L/T':2, 'R/F':3, 'R/T':4, 'F/T':5, 'All': 0}
 def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False,
                    derivate=2, transition_time=0, dataset_path='BCI Competition IV dataset 2a/A0'):
     '''
-    Load all good quality subjects from the experiment. (See load_subject() for more info)
+    Load all subjects data from the BCI IV competition 2a experiment into one single dataset. (See load_subject() for more info)
 
     :param basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
     :param signal_filter: if true, will perform a LOWESS filter to the signal.
@@ -90,7 +90,7 @@ def load_all_bci2a(basal_adjust=True, signal_filter=False, normalize=False,
 def load_datasets_bci2a(basal_adjust=False, signal_filter=False, normalize=True, derivate=2,
                         transition_time=0, tongue_feet=False, cache_mode=True, dataset_path='BCI Competition IV dataset 2a/A0'):
     '''
-    Load all good quality subjects from the experiment. (See load_subject() for more info)
+    Load all subjects data from the BCI IV competition 2a experiment. (See load_subject() for more info)
 
     :param basal_adjust: if true, will substract the mean of the basal activity (first 500 observations) to each subject.
     :param signal_filter: if true, will perform a LOWESS filter to the signal.
@@ -100,7 +100,7 @@ def load_datasets_bci2a(basal_adjust=False, signal_filter=False, normalize=True,
     :param dataset_path: path to the bci iv dataset. Check load_competition_subject() for more details.
     :param cache_mode: looks for already existing computed partitions of this data. If there are not, it creates them.
     :param tongue_feet: if True loads the for classes. If False, only loads the right/left hand.
-    :return: 90 datasets a list of partitions of 50/50 train test. 10 per subject.
+    :return: a list of datasets, each one correspondong to one subject.
     '''
     global d2_a
     cache_file = dataset_path + 'bci_iv_datasets.pckl'

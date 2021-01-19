@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 """
-Functions to load baic blocks and architectures (frameworks) for BCI experiments.
+Functions to load basic blocks and architectures (frameworks) for BCI experiments.
+It is based on the Enhanced Multimodal Fusion Framework works, and their subsqeunt papers.
 
 Created on Thu Mar 28 15:26:53 2019
 
-@author: Javier FUmanal Idocin (Fuminides)
+arXiv:
+    Fumanal-Idocin, J., Wang, Y., Lin, C., Fern'andez, J., Sanz, J.A., & Bustince, H. (2021).
+    Motor-Imagery-Based Brain Computer Interface using Signal Derivation and Aggregation Functions.
+
+@author: Javier Fumanal Idocin (Fuminides)
 """
 import numpy as np
 

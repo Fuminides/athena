@@ -234,8 +234,8 @@ class bci_achitecture_process(athena.bci_achitecture):
             :param y: labels (samples,)
             '''
             def _emf_predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
-                csp_x = athena._csp_forward(Xf, csp_models)
-                logits = athena._fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
+                csp_x = athena.csp_forward(Xf, csp_models)
+                logits = athena.fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
 
                 return ag1(logits, axis=0, keepdims=False)
             try:
@@ -248,7 +248,7 @@ class bci_achitecture_process(athena.bci_achitecture):
             if not (preprocess_function_signal is None):
                 X, y = preprocess_function_signal(X, y)
 
-            csp_models, csp_x = athena._csp_train_layer(X, y)
+            csp_models, csp_x = athena.csp_train_layer(X, y)
 
             csp_og = csp_x
             y_og = y
@@ -256,12 +256,12 @@ class bci_achitecture_process(athena.bci_achitecture):
             if not (preprocess_function_classifier is None):
                 csp_x, y = preprocess_function_classifier(csp_x, y)
 
-            classifier = athena._trad_classifier_train(csp_x, y, designed_classifier=clasificador)
+            classifier = athena.trad_classifier_train(csp_x, y, designed_classifier=clasificador)
 
-            logits = athena._fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
+            logits = athena.fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
 
             if agregacion is None:
-                ag1 = athena._decision_making_learn(logits, y_og)
+                ag1 = athena.decision_making_learn(logits, y_og)
             else:
                 try:
                     ag1 = fz.binary_parser.parse(agregacion)
@@ -282,17 +282,17 @@ class bci_achitecture_process(athena.bci_achitecture):
             :param y: labels (samples,)
             '''
         def _emf_predict_proba(X, csp_models, classifiers, ag1, ag2, num_classes):
-            csp_x = athena._csp_forward(X, csp_models)
-            logits = athena._fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
+            csp_x = athena.csp_forward(X, csp_models)
+            logits = athena.fitted_classifiers_forward(csp_x, classifiers, self._num_classes)
 
-            return athena._multimodal_fusion(logits, ag1, ag2, num_classes)
+            return athena.multimodal_fusion(logits, ag1, ag2, num_classes)
 
         self._num_classes = len(np.unique(y))
 
         if not (preprocess_function_signal is None):
             X, y = preprocess_function_signal(X, y, sample_rate=2)
 
-        csp_models, csp_x = athena._csp_train_layer(X, y)
+        csp_models, csp_x = athena.csp_train_layer(X, y)
 
         csp_og = csp_x
         y_og = y
@@ -300,10 +300,10 @@ class bci_achitecture_process(athena.bci_achitecture):
         if not (preprocess_function_classifier is None):
             csp_x, y = preprocess_function_classifier(csp_x, y)
 
-        classifiers = athena._classifier_std_block_train(csp_x, y)
+        classifiers = athena.classifier_std_block_train(csp_x, y)
 
-        logits = athena._fitted_classifiers_forward(csp_og, classifiers, self._num_classes)
+        logits = athena.fitted_classifiers_forward(csp_og, classifiers, self._num_classes)
 
-        ag1, ag2 = athena._multimodal_fusion_learn(logits, y_og)
+        ag1, ag2 = athena.multimodal_fusion_learn(logits, y_og)
 
         self.predict_proba = lambda a: _emf_predict_proba(a, csp_models, classifiers, ag1, ag2, self._num_classes)
