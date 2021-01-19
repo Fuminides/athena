@@ -9,7 +9,7 @@ It contains different versions of the Enhanced Multimodal Fusion framework and t
 
 Besides the basic methods for constructing the different architectures, different plugins regarding different variations and ampliations of the basic functionality are also presented, mostly related to further developments in the Decission making phase. Developing additional plugins is easy as long as the same philosophy of work is followed.
 
-As of today, the best result for the frameworks here obtained in
+As of today, the best result for the frameworks here obtained in this repo are reported in [1].
 
 # Install
 
