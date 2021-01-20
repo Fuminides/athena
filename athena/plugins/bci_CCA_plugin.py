@@ -147,11 +147,14 @@ class bci_achitecture_cca(athena.bci_achitecture):
     techniques.
     '''
     def trad_cca_architecture(self, X, y, verbose=False, agregacion=None):
-            '''
-            :param X: train (bands, time, samples)
-            :param y: labels (samples,)
-            '''
-            def _predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
+        '''
+        Traditional Fuzzy Framework using CCA aggregations.
+        Check the docs for the EMF in the base module.
+        
+        :param X: train (bands, time, samples)
+        :param y: labels (samples,)
+        '''
+        def _predict_proba(Xf, csp_models, classifiers, ag1, num_classes):
                 csp_x = athena.csp_forward(Xf, csp_models)
                 logits = athena.fitted_trad_classifier_forward(csp_x, classifiers, self._num_classes)
 
@@ -159,23 +162,26 @@ class bci_achitecture_cca(athena.bci_achitecture):
 
                 return agg_output_tensor.detach().numpy()
 
-            self._num_classes = len(np.unique(y))
+        self._num_classes = len(np.unique(y))
 
-            csp_models, csp_x = athena.csp_train_layer(np.real(X), y)
+        csp_models, csp_x = athena.csp_train_layer(np.real(X), y)
 
-            csp_og = csp_x
-            y_og = y
+        csp_og = csp_x
+        y_og = y
 
-            classifier = athena.trad_classifier_train(csp_x, y, designed_classifier=agregacion[1])
+        classifier = athena.trad_classifier_train(csp_x, y, designed_classifier=agregacion[1])
 
-            logits = athena.fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
-            ag1 = unimodal_decision_learn(logits, y_og, agregacion[0][0], agregacion[0][1])
+        logits = athena.fitted_trad_classifier_forward(csp_og, classifier, self._num_classes)
+        ag1 = unimodal_decision_learn(logits, y_og, agregacion[0][0], agregacion[0][1])
 
-            self._components = [csp_models, classifier, ag1, self._num_classes]
-            self.predict_proba = lambda a: _predict_proba(a, csp_models, classifier, ag1, self._num_classes)
+        self._components = [csp_models, classifier, ag1, self._num_classes]
+        self.predict_proba = lambda a: _predict_proba(a, csp_models, classifier, ag1, self._num_classes)
 
     def emf_cca_architecture(self, X, y, verbose=False, agregacion=None):
         '''
+        Enhanced Multimodal Framework using CCA aggregations.
+        Check the docs for the EMF in the base module.
+        
         :param X: train (bands, time, samples)
         :param y: labels (samples,)
         '''
