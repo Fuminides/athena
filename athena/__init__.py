@@ -1,8 +1,8 @@
 #Javier Fumanal Idocin (Fuminides)
 
 #Basic functionality
-import load_brain_data
-import bci_architectures
+from . import load_brain_data
+from . import bci_architectures
 
 #Import the plugins namespace
-import plugins
+from . import plugins
