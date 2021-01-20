@@ -5,11 +5,12 @@ Created on Tue May 19 11:55:33 2020
 @author: javi-
 """
 import numpy as np
+
 from Fancy_aggregations import penalties
 from Fancy_aggregations import binary_parser as bp
-from bci_architectures import classical_aggregations, mff_aggregations, _my_optimization
+from ..bci_architectures import classical_aggregations, mff_aggregations, _my_optimization
 
-import bci_architectures as athena
+from .. import bci_architectures as athena
 
 # =============================================================================
 #  LEARN FUNCTIONS

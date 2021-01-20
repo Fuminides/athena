@@ -19,7 +19,7 @@ from Fancy_aggregations import binary_parser as bp
 from Fancy_aggregations import intervaluate_moderate_deviations as md
 from bci_architectures import weight_numerical_optimization, mff_aggregations
 
-import bci_architectures as bci_base
+from ..  import bci_architectures as bci_base
 
 def intervaluate_logits(logits, y=0.3, implication_operator=implications.reichenbach_implication):
     '''

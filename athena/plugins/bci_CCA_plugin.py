@@ -8,7 +8,7 @@ import torch
 
 import numpy as np
 
-import bci_architectures as athena
+from .. import bci_architectures as athena
 
 from Fancy_aggregations import tensor_CCA as cca
 

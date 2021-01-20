@@ -14,7 +14,7 @@ arXiv:
 """
 import numpy as np
 
-import load_brain_data as lb
+from . import load_brain_data as lb
 import Fancy_aggregations.binary_parser as bp
 
 from sklearn.svm import SVC

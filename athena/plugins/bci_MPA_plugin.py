@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import pickle
 
-import bci_architectures as athena
-import bci_penalty_plugin as bci_penalty
-import load_brain_data as lb
+from .. import bci_architectures as athena
+from .  import bci_penalty_plugin as bci_penalty
+from .. import load_brain_data as lb
 
 from Fancy_aggregations import penalties as pn
 from Fancy_aggregations import binary_parser as bp

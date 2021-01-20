@@ -10,7 +10,7 @@ from imblearn.over_sampling import SMOTE, ADASYN, BorderlineSMOTE
 from imblearn.combine import SMOTEENN, SMOTETomek
 
 import Fancy_aggregations as fz
-import bci_architectures as athena
+from .. import bci_architectures as athena
 
 # =============================================================================
 #   	CLASSIC OVERSAMPLING METHODS - The names are self-descriptive
