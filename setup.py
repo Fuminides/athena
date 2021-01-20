@@ -16,7 +16,7 @@ setup(
    url='https://github.com/Fuminides/athena',
    author_email='javier.fumanal@unavarra.es',
    packages=['athena'],  #same as name
-   install_requires=['numpy', 'Fancy_aggregations', 'pytorch', 'tensorflow', 'pandas'], #external packages as dependencies
+   install_requires=['numpy', 'Fancy_aggregations', 'torch', 'tensorflow', 'pandas'], #external packages as dependencies
    long_description=long_description,
    long_description_content_type='text/markdown'
 )
