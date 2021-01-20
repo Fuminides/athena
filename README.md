@@ -1,4 +1,7 @@
-![Athena Logo](https://user-images.githubusercontent.com/12574757/105212305-90824d00-5b4d-11eb-982f-77a480075679.png)
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/12574757/105212305-90824d00-5b4d-11eb-982f-77a480075679.png">
+</p>
 
 # Athena: the BCI architecture library [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/motor-imagery-based-brain-computer-interface/eeg-4-classes-on-bci-competition-iv-2a)](https://paperswithcode.com/sota/eeg-4-classes-on-bci-competition-iv-2a?p=motor-imagery-based-brain-computer-interface) [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/motor-imagery-based-brain-computer-interface/eeg-left-right-hand-on-bci-competition-iv-2a)](https://paperswithcode.com/sota/eeg-left-right-hand-on-bci-competition-iv-2a?p=motor-imagery-based-brain-computer-interface)
 Athena is a library that comprises many different bci frameworks that perform classification on a set of eeg data. It contains methods in the same philosophy as the Keras layers to construct BCI architectures to:
