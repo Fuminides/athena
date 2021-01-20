@@ -35,4 +35,6 @@ Or you an install it locally with pip:
 If you use this work in any of your works, cite one of the following papers, preferably the first one:
 
 [1] Fumanal-Idocin, J., Wang, Y., Lin, C., Fern'andez, J., Sanz, J.A., & Bustince, H. (2021). Motor-Imagery-Based Brain Computer Interface using Signal Derivation and Aggregation Functions.
+
+
 [2] Fumanal-Idocin, J., Takáč, Z., Sanz, J. F. J. A., Goyena, H., Lin, C. T., Wang, Y. K., & Bustince, H. (2021). Interval-valued aggregation functions based on moderate deviations applied to Motor-Imagery-Based Brain Computer Interface. arXiv preprint arXiv:2011.09831.
