@@ -420,7 +420,7 @@ class bci_achitecture:
         in the original paper: the theta, delta, alpha, beta and All.
 
         For each one of them, we train a CSP model and a set of classifiers: KNN, LDA, QDA, SVM, GP.
-        Then, we look for the best multimodal-decission making function.
+        Then, we look for the best multimodal-decision making function.
         (It works similarly as an ensemble of trad frameworks)
 
         :param X: train (bands, time, samples)
